@@ -30,9 +30,9 @@ if __name__ == '__main__':
                               max_queue_size=router_queue_size)
     object_L.append(router_a)
 
-    encap_tbl_D = {}    
-    frwd_tbl_D = {}     
-    decap_tbl_D = {}    
+    encap_tbl_D = {}
+    frwd_tbl_D = {}
+    decap_tbl_D = {}
     router_b = Router(name='RB', 
                               intf_capacity_L=[500,100],
                               encap_tbl_D = encap_tbl_D,

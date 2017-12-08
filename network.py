@@ -1,7 +1,7 @@
 import queue
 import threading
 from link import LinkFrame
-
+import re
 
 ## wrapper class for a queue of packets
 class Interface:
@@ -56,6 +56,7 @@ class NetworkPacket:
     def __init__(self, dst, data_S, priority=0):
         self.dst = dst
         self.data_S = data_S
+        self.priority = priority
         #TODO: add priority to the packet class
         
     ## called when printing the object
@@ -138,6 +139,7 @@ class Router:
     def __init__(self, name, intf_capacity_L, encap_tbl_D, frwd_tbl_D, decap_tbl_D, max_queue_size):
         self.stop = False #for thread termination
         self.name = name
+        self.router_count = 0
         #create a list of interfaces
         self.intf_L = [Interface(max_queue_size, intf_capacity_L[i]) for i in range(len(intf_capacity_L))]
         #save MPLS tables
@@ -181,11 +183,19 @@ class Router:
     #  @param i Incoming interface number for packet p
     def process_network_packet(self, pkt, i):
         #TODO: encapsulate the packet in an MPLS frame based on self.encap_tbl_D
-        #for now, we just relabel the packet as an MPLS frame without encapsulation
-        m_fr = pkt
-        print('%s: encapsulated packet "%s" as MPLS frame "%s"' % (self, pkt, m_fr))
-        #send the encapsulated packet for processing as MPLS frame
-        self.process_MPLS_frame(m_fr, i)
+        if(self.router_count == 0):
+            #for now, we just relabel the packet as an MPLS frame without encapsulation
+
+            # Regex Packet to get Destination Of Packet
+            match_hosts = re.findall(r'(H\d?)', pkt.to_byte_S())
+            match = match_hosts[0]
+            append = '20' + pkt.to_byte_S()
+            m_fr = NetworkPacket(match, append)
+            self.encap_tbl_D[match] = m_fr
+            print('%s: encapsulated packet "%s" as MPLS frame "%s"' % (self, pkt, m_fr))
+            #send the encapsulated packet for processing as MPLS frame
+            self.router_count = 1
+            self.process_MPLS_frame(m_fr, i)
 
 
     ## process an MPLS frame incoming to this router
@@ -193,6 +203,7 @@ class Router:
     #  @param i Incoming interface number for the frame
     def process_MPLS_frame(self, m_fr, i):
         #TODO: implement MPLS forward, or MPLS decapsulation if this is the last hop router for the path
+
         print('%s: processing MPLS frame "%s"' % (self, m_fr))
         # for now forward the frame out interface 1
         try:
