@@ -128,6 +128,38 @@ class Host:
 
 
 ## Implements a multi-interface router
+class MPLSFrame:
+    ## mplsframe encoding lengths
+    dst_S_length = 2
+
+    ##@param dst: address of the destination host
+    # @param label: label for mplsframe
+    def __init__(self, label, data_S):
+        self.label = label
+        self.data_S = data_S
+
+
+    ## called when printing the object
+    def __str__(self):
+        return self.to_byte_S()
+
+    ## convert mplsframe to a byte string for transmission over links
+    def to_byte_S(self):
+        byte_S = str(self.label)
+        byte_S += self.data_S
+        return byte_S
+
+    ## extract a mplsframe object from a byte string
+    # @param byte_S: byte string representation of the mplsframe
+    @classmethod
+    def from_byte_S(self, byte_S):
+        label = byte_S[0: MPLSFrame.dst_S_length].strip('0')
+        data_S = byte_S[MPLSFrame.dst_S_length:]
+        return self(label, data_S)
+
+    pass
+
+
 class Router:
     
     ##@param name: friendly router name for debugging
@@ -140,6 +172,7 @@ class Router:
         self.stop = False #for thread termination
         self.name = name
         self.router_count = 0
+        self.interface = 0
         #create a list of interfaces
         self.intf_L = [Interface(max_queue_size, intf_capacity_L[i]) for i in range(len(intf_capacity_L))]
         #save MPLS tables
@@ -170,7 +203,7 @@ class Router:
                 self.process_network_packet(p, i)
             elif fr.type_S == "MPLS":
                 # TODO: handle MPLS frames
-                # m_fr = MPLSFrame.from_byte_S(pkt_S) #parse a frame out
+                m_fr = MPLSFrame.from_byte_S(pkt_S) #parse a frame out
                 #for now, we just relabel the packet as an MPLS frame without encapsulation
                 m_fr = p
                 #send the MPLS frame for processing
@@ -185,13 +218,18 @@ class Router:
         #TODO: encapsulate the packet in an MPLS frame based on self.encap_tbl_D
         if(self.router_count == 0):
             #for now, we just relabel the packet as an MPLS frame without encapsulation
-
+            if(i == 0):
+                self.interface = 1
+            else:
+                self.interface = 0
             # Regex Packet to get Destination Of Packet
             match_hosts = re.findall(r'(H\d?)', pkt.to_byte_S())
             match = match_hosts[0]
             append = '20' + pkt.to_byte_S()
             m_fr = NetworkPacket(match, append)
-            self.encap_tbl_D[match] = m_fr
+            self.encap_tbl_D[str(self)] = {'in_label': 0, 'out_label': 20, 'dest': match, 'out_int': self.interface}
+            print(self.encap_tbl_D)
+
             print('%s: encapsulated packet "%s" as MPLS frame "%s"' % (self, pkt, m_fr))
             #send the encapsulated packet for processing as MPLS frame
             self.router_count = 1
