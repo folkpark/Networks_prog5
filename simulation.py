@@ -20,27 +20,56 @@ if __name__ == '__main__':
     
     #create routers and routing tables for connected clients (subnets)
     encap_tbl_D = {}    # table used to encapsulate network packets into MPLS frames
+    encap_tbl_D['RA'] = {'in_label': ['', ''], 'out_label': [20, 40]}
     frwd_tbl_D = {}     # table used to forward MPLS frames
-    frwd_tbl_D['RA'] = {'in_label': ['', 30], 'out_label': [20, ''], 'in_intf': [0, 1], 'out_intf': [1, 0], 'dest': ['H2', 'H1']}
+    frwd_tbl_D['RA'] = {'in_label': ['', ''], 'out_label': [20, 40], 'in_intf': [0, 1], 'out_intf': [1, 0], 'dest': ['H2', 'H1']}
     decap_tbl_D = {}    # table used to decapsulate network packets from MPLS frames
     router_a = Router(name='RA', 
-                              intf_capacity_L=[500,500],
+                              intf_capacity_L=[700,700],
                               encap_tbl_D = encap_tbl_D,
                               frwd_tbl_D = frwd_tbl_D,
                               decap_tbl_D = decap_tbl_D, 
                               max_queue_size=router_queue_size)
     object_L.append(router_a)
+
     encap_tbl_D = {}
+    encap_tbl_D['RB'] = {'in_label': [20], 'out_label': [30]}
     frwd_tbl_D = {}
-    frwd_tbl_D['RB'] = {'in_label': [20, ''], 'out_label': ['', 30], 'in_intf': [0, 1], 'out_int': [1, 0], 'dest': ['H2', 'H!']}
+    frwd_tbl_D['RB'] = {'in_label': [20], 'out_label': [30], 'in_intf': [0, 1], 'out_int': [1, 0], 'dest': ['H2', 'H1']}
     decap_tbl_D = {}
-    router_b = Router(name='RB', 
-                              intf_capacity_L=[500,500],
+    router_b = Router(name='RB',
+                              intf_capacity_L=[700,700],
                               encap_tbl_D = encap_tbl_D,
                               frwd_tbl_D = frwd_tbl_D,
                               decap_tbl_D = decap_tbl_D,
                               max_queue_size=router_queue_size)
     object_L.append(router_b)
+
+    encap_tbl_D = {}
+    encap_tbl_D['RC'] = {'in_label': [40], 'out_label': [50]}
+    frwd_tbl_D = {}
+    frwd_tbl_D['RC'] = {'in_label': [40], 'out_label': [50], 'in_intf': [0, 1], 'out_int': [1, 0], 'dest': ['H2', 'H1']}
+    decap_tbl_D = {}
+    router_c = Router(name='RC',
+                      intf_capacity_L=[700, 700],
+                      encap_tbl_D=encap_tbl_D,
+                      frwd_tbl_D=frwd_tbl_D,
+                      decap_tbl_D=decap_tbl_D,
+                      max_queue_size=router_queue_size)
+    object_L.append(router_c)
+
+    encap_tbl_D = {}
+    encap_tbl_D['RD'] = {'in_label': [50, 30], 'out_label': ['', '']}
+    frwd_tbl_D = {}
+    frwd_tbl_D['RD'] = {'in_label': [50, 30], 'out_label': ['', ''], 'in_intf': [0, 1], 'out_int': [1, 0], 'dest': ['H2', 'H!']}
+    decap_tbl_D = {}
+    router_d = Router(name='RD',
+                      intf_capacity_L=[700, 700],
+                      encap_tbl_D=encap_tbl_D,
+                      frwd_tbl_D=frwd_tbl_D,
+                      decap_tbl_D=decap_tbl_D,
+                      max_queue_size=router_queue_size)
+    object_L.append(router_d)
     
     #create a Link Layer to keep track of links between network nodes
     link_layer = LinkLayer()
@@ -49,7 +78,9 @@ if __name__ == '__main__':
     #add all the links - need to reflect the connectivity in cost_D tables above
     link_layer.add_link(Link(host_1, 0, router_a, 0))
     link_layer.add_link(Link(router_a, 1, router_b, 0))
-    link_layer.add_link(Link(router_b, 1, host_2, 0))
+    link_layer.add_link(Link(router_b, 1, router_c, 0))
+    link_layer.add_link(Link(router_c, 1, router_d, 0))
+    link_layer.add_link(Link(router_d, 1, host_2, 0))
 
     
     #start all the objects
