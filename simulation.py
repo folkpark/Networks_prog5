@@ -82,10 +82,11 @@ if __name__ == '__main__':
     link_layer.add_link(Link(host_1, 0, router_a, 0))
     link_layer.add_link(Link(host_2, 0, router_a, 0))
     link_layer.add_link(Link(router_a, 1, router_b, 0))
-    link_layer.add_link(Link(router_a, 1, router_c, 0))
+
     link_layer.add_link(Link(router_c, 1, router_d, 0))
     link_layer.add_link(Link(router_b, 1, router_d, 0))
     link_layer.add_link(Link(router_d, 1, host_3, 0))
+    link_layer.add_link(Link(router_a, -1, router_c, 0))
 
 
     #start all the objects

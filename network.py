@@ -224,14 +224,14 @@ class Router:
             match_hosts = re.findall(r'(H\d+)', pkt.to_byte_S())
             src = match_hosts[1]
 
-            if self.name == 'RA' and src == 'H1':
-                sendOut_intf = 0
-            elif self.name == 'RA' and src == 'H2':
+            if src == 'H1':
+                sendOut_intf = -1
+                fr = LinkFrame('MPLS', m_fr.to_byte_S())
+                self.intf_L[sendOut_intf].put(fr.to_byte_S(), 'out', True)
+            elif src == 'H2':
                 sendOut_intf = 1
-            else:
-                sendOut_intf = 1
-
-
+                fr = LinkFrame('MPLS', m_fr.to_byte_S())
+                self.intf_L[sendOut_intf].put(fr.to_byte_S(), 'out', True)
 
 
             print('%s: encapsulated packet "%s" as MPLS frame "%s"' % (self, pkt, m_fr))
