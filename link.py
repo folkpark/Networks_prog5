@@ -4,6 +4,8 @@ import time
 
 ## Implements a link layer frame
 # Needed to tell the network layer the type of the payload
+
+
 class LinkFrame:
     ## packet encoding lengths
     type_S_length = 1
@@ -44,7 +46,6 @@ class LinkFrame:
         data_S = byte_S[self.type_S_length: ]        
         return self(type_S, data_S)
 
-    
 
 ## An abstraction of a link between router interfaces
 class Link:
@@ -64,7 +65,8 @@ class Link:
     ## called when printing the object
     def __str__(self):
         return 'Link %s-%d - %s-%d' % (self.node_1, self.node_1_intf, self.node_2, self.node_2_intf)
-        
+
+
     ##transmit a packet between interfaces in each direction
     def tx_pkt(self):
         for (node_a, node_a_intf, node_b, node_b_intf) in \
@@ -83,14 +85,12 @@ class Link:
                     intf_b.put(pkt_S, 'in')
                     #update the next free time of the interface according to serialization delay
                     pkt_size = len(pkt_S)*8 #assuming each character is 8 bits
-                    intf_a.next_avail_time = time.time() + pkt_size/intf_a.capacity                
+                    intf_a.next_avail_time = time.time() + pkt_size/intf_a.capacity
                     print('%s: transmitting frame "%s" on %s %s -> %s %s \n' \
                           ' - seconds until the next available time %f\n' \
-                          ' - queue size %d' \
-                          % (self, pkt_S, node_a, node_a_intf, node_b, node_b_intf, intf_a.next_avail_time - time.time(), intf_a.out_queue.qsize()))
-                # uncomment the lines below to see waiting time until next transmission
-#                 else:
-#                     print('%s: waiting to transmit packet on %s %s -> %s, %s for another %f milliseconds' % (self, node_a, node_a_intf, node_b, node_b_intf, intf_a.next_avail_time - time.time()))    
+                          ' - queue size %d\n' \
+                          % (self, pkt_S, node_a, node_a_intf, node_b, node_b_intf, intf_a.next_avail_time - time.time(),intf_a.out_queue.qsize()))
+
             except queue.Full:
                 print('%s: packet lost' % (self))
                 pass
